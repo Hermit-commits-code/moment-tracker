@@ -1,130 +1,55 @@
 'use client';
-import { useLogs } from '@/hooks/useLogs';
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  AreaChart,
-  Area,
-} from 'recharts';
+import { DailyLog } from '@/types/log';
 
-export default function Insights() {
-  const { logs } = useLogs();
-
-  // 1. Prepare data: Map logs to a format Recharts understands
-  // We sort them chronologically for the chart
-  const chartData = [...logs]
-    .sort((a, b) => a.date.localeCompare(b.date))
-    .slice(-7) // Take the last 7 days of entries
-    .map((day) => {
-      // Calculate average severity for the day
-      const avgSeverity =
-        day.moodEntries.length > 0
-          ? day.moodEntries.reduce((sum, m) => sum + m.severity, 0) /
-            day.moodEntries.length
-          : 0;
-
-      // Calculate total caffeine for the day
-      const totalCaffeine =
-        day.caffeineEntries?.reduce((sum, c) => sum + c.amount, 0) || 0;
-
-      return {
-        displayDate: new Date(day.date + 'T12:00:00').toLocaleDateString(
-          'en-US',
-          { month: 'short', day: 'numeric' },
-        ),
-        severity: Number(avgSeverity.toFixed(1)),
-        caffeine: totalCaffeine,
-      };
-    });
-
-  if (chartData.length === 0) {
-    return (
-      <div className="h-64 flex items-center justify-center bg-slate-50 rounded-[32px] border-2 border-dashed border-slate-200">
-        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-          No data for the last 7 days
-        </p>
-      </div>
-    );
-  }
+export default function Insights({ logs }: { logs: DailyLog[] }) {
+  const moodToValue = (s: string) =>
+    ({ Elevated: 100, Agitated: 90, Neutral: 50, Anxious: 40, Depressed: 20 }[
+      s
+    ] || 10);
 
   return (
-    <div className="bg-white p-8 rounded-[40px] border border-slate-100 shadow-sm space-y-8">
-      <div className="flex justify-between items-center">
-        <h3 className="font-black text-slate-900 uppercase tracking-widest text-[12px]">
-          Mood Intensity vs. Caffeine
+    <div className="grid grid-cols-1 gap-6">
+      <section className="p-6 bg-white border border-slate-200 rounded-3xl shadow-sm">
+        <h3 className="text-[10px] font-black text-slate-400 uppercase mb-8 tracking-widest">
+          7-Day Intensity
         </h3>
-        <div className="flex gap-4">
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-indigo-500" />
-            <span className="text-[8px] font-black text-slate-400 uppercase">
-              Severity
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-emerald-400" />
-            <span className="text-[8px] font-black text-slate-400 uppercase">
-              Caffeine
-            </span>
-          </div>
+        <div className="flex items-end justify-between h-32 gap-2 border-b border-slate-100">
+          {logs
+            .slice(0, 7)
+            .reverse()
+            .map((log) => {
+              const peak = log.moodEntries.reduce(
+                (p, c) => (p.severity > c.severity ? p : c),
+                log.moodEntries[0],
+              );
+              return (
+                <div
+                  key={log.date}
+                  className="flex-1 flex flex-col items-center group relative"
+                >
+                  <div
+                    className={`w-full max-w-[30px] rounded-t-lg transition-all ${
+                      peak.state === 'Elevated'
+                        ? 'bg-yellow-400'
+                        : peak.state === 'Agitated'
+                        ? 'bg-orange-600'
+                        : peak.state === 'Depressed'
+                        ? 'bg-indigo-500'
+                        : 'bg-slate-300'
+                    }`}
+                    style={{ height: `${moodToValue(peak.state)}%` }}
+                  />
+                  <span className="text-[8px] font-black text-slate-400 mt-2 uppercase">
+                    {new Date(log.date + 'T00:00:00').toLocaleDateString(
+                      'en-US',
+                      { weekday: 'narrow' },
+                    )}
+                  </span>
+                </div>
+              );
+            })}
         </div>
-      </div>
-
-      <div className="h-64 w-full">
-        <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={chartData}>
-            <defs>
-              <linearGradient id="colorSev" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#6366f1" stopOpacity={0.1} />
-                <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
-              </linearGradient>
-            </defs>
-            <CartesianGrid
-              strokeDasharray="3 3"
-              vertical={false}
-              stroke="#f1f5f9"
-            />
-            <XAxis
-              dataKey="displayDate"
-              axisLine={false}
-              tickLine={false}
-              tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 900 }}
-              dy={10}
-            />
-            <YAxis
-              hide // Keep it clean, use tooltips for values
-            />
-            <Tooltip
-              contentStyle={{
-                borderRadius: '20px',
-                border: 'none',
-                boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)',
-                fontSize: '10px',
-                fontWeight: 'bold',
-              }}
-            />
-            <Area
-              type="monotone"
-              dataKey="severity"
-              stroke="#6366f1"
-              strokeWidth={4}
-              fillOpacity={1}
-              fill="url(#colorSev)"
-            />
-            <Line
-              type="monotone"
-              dataKey="caffeine"
-              stroke="#34d399"
-              strokeWidth={2}
-              dot={{ fill: '#34d399', strokeWidth: 2 }}
-            />
-          </AreaChart>
-        </ResponsiveContainer>
-      </div>
+      </section>
     </div>
   );
 }

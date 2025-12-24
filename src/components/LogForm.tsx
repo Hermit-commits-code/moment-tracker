@@ -1,17 +1,10 @@
 'use client';
-import { useState } from 'react';
-import { MoodEntry } from '@/types/log';
+import { useState, useEffect } from 'react';
+import { TriggerChecklist } from './FormSegments/TriggerChecklist';
 import { SymptomChecklist } from './FormSegments/SymptomChecklist';
 import { PhysiologicalData } from './FormSegments/PhysiologicalData';
-import { TriggerChecklist } from './FormSegments/TriggerChecklist';
 
-export default function LogForm({
-  onSave,
-  initialData,
-}: {
-  onSave: (data: any) => void;
-  initialData: MoodEntry | null;
-}) {
+export default function LogForm({ onSave, initialData }: any) {
   const [form, setForm] = useState({
     id: initialData?.id || '',
     timestamp:
@@ -20,23 +13,38 @@ export default function LogForm({
     endTime:
       initialData?.endTime?.slice(0, 16) ||
       new Date().toISOString().slice(0, 16),
+    duration: initialData?.duration || '',
     state: initialData?.state || 'Neutral',
     severity: initialData?.severity || 5,
     isMixed: initialData?.isMixed || false,
-    symptoms: initialData?.symptoms || ([] as string[]),
-    triggers: initialData?.triggers || ([] as string[]),
+    symptoms: initialData?.symptoms || [],
+    triggers: initialData?.triggers || [],
     isNap: initialData?.isNap || false,
     sleepHours: initialData?.sleepHours || 0,
     caffeineAmount: initialData?.caffeineAmount || 0,
-    note: initialData?.note || '', // RESTORED
+    note: initialData?.note || '',
   });
 
-  const toggleItem = (listName: 'symptoms' | 'triggers', value: string) => {
+  // Automatically calculate duration string
+  useEffect(() => {
+    const start = new Date(form.timestamp).getTime();
+    const end = new Date(form.endTime).getTime();
+    if (end > start) {
+      const diff = end - start;
+      const h = Math.floor(diff / 3600000);
+      const m = Math.floor((diff % 3600000) / 60000);
+      setForm((prev) => ({ ...prev, duration: `${h}h ${m}m` }));
+    } else {
+      setForm((prev) => ({ ...prev, duration: '' }));
+    }
+  }, [form.timestamp, form.endTime]);
+
+  const toggleItem = (list: 'symptoms' | 'triggers', val: string) => {
     setForm((prev) => ({
       ...prev,
-      [listName]: prev[listName].includes(value)
-        ? prev[listName].filter((i) => i !== value)
-        : [...prev[listName], value],
+      [list]: prev[list].includes(val)
+        ? prev[list].filter((i) => i !== val)
+        : [...prev[list], val],
     }));
   };
 
@@ -48,21 +56,25 @@ export default function LogForm({
       }}
       className="space-y-8 bg-white p-8 rounded-[40px] shadow-2xl border border-slate-100"
     >
-      {/* SEVERITY SLIDER */}
+      {/* SEVERITY SECTION - FIXED LABEL */}
       <div className="space-y-4 px-2">
         <div className="flex justify-between items-end">
           <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-            Intensity
+            Intensity Score
           </label>
-          <span className="text-4xl font-black text-slate-900 leading-none">
-            {form.severity}
-          </span>
+          <div className="flex flex-col items-end">
+            <span className="text-4xl font-black text-slate-900">
+              {form.severity}
+            </span>
+            <span className="text-[8px] font-bold text-slate-400 uppercase">
+              out of 10
+            </span>
+          </div>
         </div>
         <input
           type="range"
           min="1"
           max="10"
-          step="1"
           value={form.severity}
           onChange={(e) =>
             setForm({ ...form, severity: Number(e.target.value) })
@@ -71,7 +83,33 @@ export default function LogForm({
         />
       </div>
 
-      {/* MOOD STATE & MIXED TOGGLE */}
+      {/* TIME SECTION - FIXED DURATION LABEL */}
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <label className="text-[9px] font-black text-slate-400 uppercase ml-2">
+            Start
+          </label>
+          <input
+            type="datetime-local"
+            value={form.timestamp}
+            onChange={(e) => setForm({ ...form, timestamp: e.target.value })}
+            className="w-full p-4 bg-slate-50 border-none rounded-2xl text-xs font-bold"
+          />
+        </div>
+        <div className="space-y-2">
+          <label className="text-[9px] font-black text-slate-400 uppercase ml-2">
+            End {form.duration && `(${form.duration})`}
+          </label>
+          <input
+            type="datetime-local"
+            value={form.endTime}
+            onChange={(e) => setForm({ ...form, endTime: e.target.value })}
+            className="w-full p-4 bg-slate-50 border-none rounded-2xl text-xs font-bold"
+          />
+        </div>
+      </div>
+
+      {/* MOOD & MIXED */}
       <div className="space-y-4">
         <div className="flex flex-wrap gap-2">
           {['Elevated', 'Agitated', 'Neutral', 'Anxious', 'Depressed'].map(
@@ -118,27 +156,26 @@ export default function LogForm({
       />
       <PhysiologicalData
         form={form}
-        update={(fields: any) => setForm({ ...form, ...fields })}
+        update={(fields) => setForm({ ...form, ...fields })}
       />
 
-      {/* NOTES AREA (RESTORED) */}
       <div className="space-y-2">
         <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">
-          Observation Notes
+          Notes
         </label>
         <textarea
           value={form.note}
           onChange={(e) => setForm({ ...form, note: e.target.value })}
-          placeholder="Describe internal experience, thought patterns, or context..."
-          className="w-full p-5 bg-slate-50 border-none rounded-[24px] text-sm font-medium min-h-[120px] focus:ring-2 focus:ring-slate-200 outline-none placeholder:text-slate-300"
+          placeholder="Context..."
+          className="w-full p-5 bg-slate-50 border-none rounded-[24px] text-sm font-medium min-h-[120px] outline-none"
         />
       </div>
 
       <button
         type="submit"
-        className="w-full py-5 bg-slate-900 text-white rounded-[24px] font-black uppercase tracking-[0.2em] shadow-xl shadow-slate-200"
+        className="w-full py-5 bg-slate-900 text-white rounded-[24px] font-black uppercase tracking-[0.2em] shadow-xl"
       >
-        {initialData ? 'Update Moment' : 'Save Moment'}
+        Save Moment
       </button>
     </form>
   );
