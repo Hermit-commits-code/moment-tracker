@@ -1,22 +1,30 @@
 export interface MoodEntry {
   id: string;
-  timestamp: string; // We use ISO dates in web apps
-  state: string; // e.g., Elevated, Depressed
-  severity: number; // 1-10
+  timestamp: string;
+  endTime?: string;
+  duration?: string;
+  state: string;
+  severity: number;
+  isMixed: boolean;
+  isNap: boolean;
+  sleepHours: number;
+  bedTime?: string; // Added to track picker values
+  wakeTime?: string; // Added to track picker values
+  triggers: string[];
+  symptoms: string[];
   note: string;
 }
 
 export interface DailyLog {
   id: string;
-  date: string; // The calendar day (yyyy-mm-dd)
+  date: string;
   moodEntries: MoodEntry[];
-  sleepHours?: number; // The '?' means this is optional
+  sleepHours?: number; // Total nightly sleep for the day
   caffeineEntries: CaffeineEntry[];
   medicationEntries: MedicationEntry[];
   notes: string;
-  tags: string[]; // An array of strings.
+  tags: string[];
 }
-
 export interface CaffeineEntry {
   id: string;
   timestamp: string;
