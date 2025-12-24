@@ -1,5 +1,5 @@
-"use client";
-import { DailyLog, MoodEntry } from "@/types/log";
+'use client';
+import { DailyLog, MoodEntry } from '@/types/log';
 
 export default function HistoryCard({ logs, onEditMood, onDeleteMood }: any) {
   return (
@@ -18,10 +18,10 @@ export default function HistoryCard({ logs, onEditMood, onDeleteMood }: any) {
             {/* Day Header */}
             <div className="bg-slate-50/50 px-6 py-4 border-b border-slate-200 flex justify-between items-center">
               <h3 className="font-black text-slate-900 uppercase tracking-widest text-[10px]">
-                {new Date(log.date + "T12:00:00").toLocaleDateString("en-US", {
-                  weekday: "long",
-                  month: "short",
-                  day: "numeric",
+                {new Date(log.date + 'T12:00:00').toLocaleDateString('en-US', {
+                  weekday: 'long',
+                  month: 'short',
+                  day: 'numeric',
                 })}
               </h3>
               <div className="flex gap-4">
@@ -55,9 +55,9 @@ export default function HistoryCard({ logs, onEditMood, onDeleteMood }: any) {
                       <div className="flex items-center gap-2 mb-1">
                         <span
                           className={`px-2 py-0.5 rounded text-[10px] font-black uppercase ${
-                            m.state === "Elevated"
-                              ? "bg-green-500 text-white"
-                              : "bg-slate-900 text-white"
+                            m.state === 'Elevated'
+                              ? 'bg-green-500 text-white'
+                              : 'bg-slate-900 text-white'
                           }`}
                         >
                           {m.state}
@@ -69,13 +69,13 @@ export default function HistoryCard({ logs, onEditMood, onDeleteMood }: any) {
                       {/* ADDED: Time Range Display */}
                       <p className="text-[10px] font-bold text-indigo-500 uppercase tracking-tight">
                         {new Date(m.timestamp).toLocaleTimeString([], {
-                          hour: "2-digit",
-                          minute: "2-digit",
+                          hour: '2-digit',
+                          minute: '2-digit',
                         })}
-                        {" — "}
+                        {' — '}
                         {new Date(m.endTime || m.timestamp).toLocaleTimeString(
                           [],
-                          { hour: "2-digit", minute: "2-digit" }
+                          { hour: '2-digit', minute: '2-digit' },
                         )}
                       </p>
                     </div>
@@ -113,9 +113,14 @@ export default function HistoryCard({ logs, onEditMood, onDeleteMood }: any) {
                   </div>
 
                   {m.note && (
-                    <p className="mt-4 text-xs text-slate-500 italic border-l-2 border-slate-100 pl-3">
-                      "{m.note}"
-                    </p>
+                    <div className="mt-4 p-4 bg-slate-50/50 rounded-2xl border-l-4 border-slate-200">
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">
+                        Notes
+                      </p>
+                      <p className="text-xs text-slate-600 leading-relaxed italic">
+                        "{m.note}"
+                      </p>
+                    </div>
                   )}
                 </div>
               ))}

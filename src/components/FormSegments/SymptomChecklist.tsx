@@ -1,70 +1,62 @@
-const MANIC = [
-  "Racing Thoughts",
-  "Pressured Speech",
-  "Decreased Sleep Need",
-  "Increased Energy",
-  "Grandiosity",
-];
-const DEPRESSIVE = [
-  "Anhedonia",
-  "Physically Slowed",
-  "Worthlessness/Guilt",
-  "Low Concentration",
-  "Fatigue",
-];
+'use client';
+
+const CRITERIA = {
+  Manic: [
+    'Pressured Speech',
+    'Racing Thoughts',
+    'Grandiosity',
+    'Decreased Sleep Need',
+    'Distractibility',
+    'Risk Taking',
+  ],
+  Depressive: [
+    'Suicidal Ideation',
+    'Anhedonia',
+    'Psychomotor Retardation',
+    'Fatigue',
+    'Worthlessness',
+    'Excessive Guilt',
+  ],
+};
 
 export function SymptomChecklist({ state, isMixed, selected, toggle }: any) {
-  const showManic = state === "Elevated" || state === "Agitated" || isMixed;
-  const showDepressed = state === "Depressed" || isMixed;
+  // If Elevated and Mixed: Show Depressive criteria
+  // If Depressed and Mixed: Show Manic criteria
+  const showOpposite =
+    isMixed && (state === 'Elevated' || state === 'Depressed');
+  const criteriaToShow = showOpposite
+    ? state === 'Elevated'
+      ? CRITERIA.Depressive
+      : CRITERIA.Manic
+    : state === 'Elevated'
+    ? CRITERIA.Manic
+    : state === 'Depressed'
+    ? CRITERIA.Depressive
+    : [];
 
-  if (!showManic && !showDepressed) return null;
+  if (criteriaToShow.length === 0) return null;
 
   return (
-    <div className="p-6 bg-slate-50 rounded-3xl border border-slate-200 space-y-6">
-      {showManic && (
-        <div>
-          <h4 className="text-[10px] font-black text-orange-500 uppercase mb-3">
-            Manic Symptoms
-          </h4>
-          <div className="grid grid-cols-1 gap-2">
-            {MANIC.map((s) => (
-              <label
-                key={s}
-                className="flex items-center gap-3 p-2 bg-white rounded-lg border border-slate-100 text-[11px] font-bold"
-              >
-                <input
-                  type="checkbox"
-                  checked={selected.includes(s)}
-                  onChange={() => toggle(s)}
-                />{" "}
-                {s}
-              </label>
-            ))}
-          </div>
-        </div>
-      )}
-      {showDepressed && (
-        <div>
-          <h4 className="text-[10px] font-black text-blue-500 uppercase mb-3">
-            Depressive Symptoms
-          </h4>
-          <div className="grid grid-cols-1 gap-2">
-            {DEPRESSIVE.map((s) => (
-              <label
-                key={s}
-                className="flex items-center gap-3 p-2 bg-white rounded-lg border border-slate-100 text-[11px] font-bold"
-              >
-                <input
-                  type="checkbox"
-                  checked={selected.includes(s)}
-                  onChange={() => toggle(s)}
-                />{" "}
-                {s}
-              </label>
-            ))}
-          </div>
-        </div>
-      )}
+    <div className="space-y-4">
+      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">
+        {showOpposite ? 'Mixed Features Criteria' : 'Mood Criteria'}
+      </label>
+      <div className="grid grid-cols-2 gap-2">
+        {criteriaToShow.map((s: string) => (
+          <button
+            key={s}
+            type="button"
+            onClick={() => toggle(s)}
+            className={`p-3 rounded-2xl text-[9px] font-black uppercase transition-all border-2 ${
+              selected.includes(s)
+                ? 'bg-indigo-600 border-indigo-600 text-white shadow-md'
+                : 'bg-white border-slate-100 text-slate-400'
+            }`}
+          >
+            {s}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }
