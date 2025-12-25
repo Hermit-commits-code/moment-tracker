@@ -17,7 +17,6 @@ export function useLogs() {
   }, []);
 
   const saveLog = (data: any) => {
-    // Group by the Start Date (timestamp)
     const timestamp = data.timestamp || new Date().toISOString();
     const dateKey = timestamp.split('T')[0];
 
@@ -29,7 +28,7 @@ export function useLogs() {
         id: data.id || Math.random().toString(36).substr(2, 9),
         timestamp,
         endTime: data.endTime || timestamp,
-        duration: data.duration || '0h 0m',
+        duration: data.duration || '',
         state: data.state || 'Neutral',
         severity: Number(data.severity) || 5,
         isMixed: !!data.isMixed,
@@ -38,6 +37,9 @@ export function useLogs() {
         triggers: data.triggers || [],
         symptoms: data.symptoms || [],
         note: data.note || '',
+        // NEW CLINICAL FIELDS
+        medsTaken: !!data.medsTaken,
+        medChangeNote: data.medChangeNote || '',
       };
 
       const newCaff: CaffeineEntry | null =
@@ -56,7 +58,6 @@ export function useLogs() {
         );
         if (mIdx > -1) updatedLogs[dayIndex].moodEntries[mIdx] = newEntry;
         else updatedLogs[dayIndex].moodEntries.push(newEntry);
-
         if (newCaff) {
           if (!updatedLogs[dayIndex].caffeineEntries)
             updatedLogs[dayIndex].caffeineEntries = [];
@@ -80,27 +81,5 @@ export function useLogs() {
     });
   };
 
-  const deleteLog = (id: string, date: string) => {
-    setLogs((prev) => {
-      const updated = prev
-        .map((log) => {
-          if (log.date === date) {
-            return {
-              ...log,
-              moodEntries: log.moodEntries.filter((m) => m.id !== id),
-            };
-          }
-          return log;
-        })
-        .filter(
-          (log) =>
-            log.moodEntries.length > 0 ||
-            (log.caffeineEntries?.length || 0) > 0,
-        );
-      localStorage.setItem('mood-logs', JSON.stringify(updated));
-      return updated;
-    });
-  };
-
-  return { logs, saveLog, deleteLog };
+  return { logs, saveLog };
 }
