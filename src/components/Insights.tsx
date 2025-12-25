@@ -1,55 +1,27 @@
 'use client';
 import { DailyLog } from '@/types/log';
+import IntensityChart from './Insights/IntensityChart';
+import SleepConsistency from './Insights/SleepConsistency';
+import MedicationCompliance from './Insights/MedicationCompliance';
 
 export default function Insights({ logs }: { logs: DailyLog[] }) {
-  const moodToValue = (s: string) =>
-    ({ Elevated: 100, Agitated: 90, Neutral: 50, Anxious: 40, Depressed: 20 }[
-      s
-    ] || 10);
+  if (!logs || logs.length === 0) return null;
 
   return (
-    <div className="grid grid-cols-1 gap-6">
-      <section className="p-6 bg-white border border-slate-200 rounded-3xl shadow-sm">
-        <h3 className="text-[10px] font-black text-slate-400 uppercase mb-8 tracking-widest">
-          7-Day Intensity
-        </h3>
-        <div className="flex items-end justify-between h-32 gap-2 border-b border-slate-100">
-          {logs
-            .slice(0, 7)
-            .reverse()
-            .map((log) => {
-              const peak = log.moodEntries.reduce(
-                (p, c) => (p.severity > c.severity ? p : c),
-                log.moodEntries[0],
-              );
-              return (
-                <div
-                  key={log.date}
-                  className="flex-1 flex flex-col items-center group relative"
-                >
-                  <div
-                    className={`w-full max-w-[30px] rounded-t-lg transition-all ${
-                      peak.state === 'Elevated'
-                        ? 'bg-yellow-400'
-                        : peak.state === 'Agitated'
-                        ? 'bg-orange-600'
-                        : peak.state === 'Depressed'
-                        ? 'bg-indigo-500'
-                        : 'bg-slate-300'
-                    }`}
-                    style={{ height: `${moodToValue(peak.state)}%` }}
-                  />
-                  <span className="text-[8px] font-black text-slate-400 mt-2 uppercase">
-                    {new Date(log.date + 'T00:00:00').toLocaleDateString(
-                      'en-US',
-                      { weekday: 'narrow' },
-                    )}
-                  </span>
-                </div>
-              );
-            })}
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <IntensityChart logs={logs} />
+        <SleepConsistency logs={logs} />
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <MedicationCompliance logs={logs} />
+        {/* Placeholder for future "Trigger Analysis" or "Caffeine Heatmap" */}
+        <div className="md:col-span-2 p-6 bg-slate-50 border border-slate-100 rounded-3xl flex items-center justify-center">
+          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+            {logs.length} Days of Clinical Data Active
+          </p>
         </div>
-      </section>
+      </div>
     </div>
   );
 }

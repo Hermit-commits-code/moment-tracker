@@ -3,39 +3,26 @@ export interface MoodEntry {
   timestamp: string;
   endTime?: string;
   duration?: string;
-  state: string;
+  state: 'Elevated' | 'Depressed' | 'Stable';
   severity: number;
+  energyLevel: number;
+  sleepQuality: number;
   isMixed: boolean;
   isNap: boolean;
   sleepHours: number;
-  bedTime?: string; // Added to track picker values
-  wakeTime?: string; // Added to track picker values
-  triggers: string[];
+  medsTaken: boolean;
+  medChangeNote?: string;
+  note?: string;
   symptoms: string[];
-  note: string;
+  triggers: string[];
 }
 
 export interface DailyLog {
   id: string;
   date: string;
   moodEntries: MoodEntry[];
-  sleepHours?: number; // Total nightly sleep for the day
-  caffeineEntries: CaffeineEntry[];
-  medicationEntries: MedicationEntry[];
+  caffeineEntries: any[]; // You can define a CaffeineEntry type later
+  medicationEntries: any[];
   notes: string;
   tags: string[];
-}
-export interface CaffeineEntry {
-  id: string;
-  timestamp: string;
-  type: string; //e.g., "Coffee", "Energy Drink"
-  amount: number; // e.g., 80(mg)
-}
-
-export interface MedicationEntry {
-  id: string;
-  timestamp: string;
-  name: string;
-  dosage: string;
-  taken: boolean;
 }

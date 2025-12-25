@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 :root {
   --background: #ffffff;
@@ -23,7 +23,79 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
-  /* Add this to ensure background colors are captured by the PDF engine */
+  /* Ensures background colors (like red/green badges) appear in the PDF */
   print-color-adjust: exact;
   -webkit-print-color-adjust: exact;
+}
+
+/* --- PRINT & PDF LOGIC --- */
+
+/* Standard Web Behavior: Hide print-only elements */
+.print-only {
+  display: none;
+}
+
+@media print {
+  /* 1. Page Configuration */
+  @page {
+    size: A4;
+    margin: 15mm;
+  }
+
+  body {
+    background-color: white !important;
+    color: #0f172a !important;
+  }
+
+  /* 2. Clinical Header Layout */
+  .clinical-report-header {
+    display: flex !important;
+    justify-content: space-between;
+    align-items: flex-end;
+    border-bottom: 2px solid #0f172a;
+    padding-bottom: 20px;
+    margin-bottom: 40px;
+  }
+
+  /* 3. Force Full Width & Document Styling */
+  #clinical-report {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Transform dashboard cards into clean document sections */
+  .bg-white {
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: none !important;
+    margin-bottom: 24px !important;
+    border-radius: 12px !important;
+    break-inside: avoid; /* Keeps a single card from splitting between pages */
+  }
+
+  /* Specific fix for text contrast in print */
+  .text-slate-400,
+  .text-slate-500 {
+    color: #475569 !important;
+  }
+
+  /* 4. Navigation & UI Removal */
+  header,
+  nav,
+  button,
+  .no-print,
+  .tab-navigation {
+    display: none !important;
+  }
+
+  /* Reveal hidden clinical headers */
+  .print-only,
+  .hidden.print\:block {
+    display: block !important;
+  }
+
+  .hidden.print\:flex {
+    display: flex !important;
+  }
 }
